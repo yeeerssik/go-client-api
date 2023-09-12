@@ -44,6 +44,12 @@ func CreateClient(
 	return
 }
 
+// TODO: Get all clients from table
+func GetAllClients() ([]*Client, error) {
+	//
+	return nil, nil
+}
+
 func GetClientById(id string) (*Client, error) {
 	idInBinary, err := helpers.StringToUUIDByte(id)
 	if err != nil {
@@ -55,6 +61,12 @@ func GetClientById(id string) (*Client, error) {
 		return nil, find.Error
 	}
 	return &c, nil
+}
+
+// TODO: Deleting an client
+func DeleteClientById(id string) (err error) {
+	//
+	return nil
 }
 
 func UpdateClient(c *Client) (err error) {
