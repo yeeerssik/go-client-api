@@ -1,0 +1,11 @@
+{
+    "service": "",
+    "database": {
+        "type": "sqlserver",
+        "name": "Test",
+        "username": "yers10",
+        "password": "yersdb",
+        "host": "localhost",
+        "port": "1434"
+    }
+}
