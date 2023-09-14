@@ -46,7 +46,10 @@ func CreateClient(
 
 // TODO: Get all clients from table
 func GetAllClients() ([]*Client, error) {
-	//
+	// var c Client
+	// if clients := db.Find(&c); clients.Error != nil {
+	// 	// return db.Where(db.Find(&c))
+	// }
 	return nil, nil
 }
 
@@ -65,7 +68,16 @@ func GetClientById(id string) (*Client, error) {
 
 // TODO: Deleting an client
 func DeleteClientById(id string) (err error) {
-	//
+	idInBinary, err := helpers.StringToUUIDByte(id)
+	if err != nil {
+		return err
+	}
+	var c Client
+	c.ClientID = &idInBinary
+	delete := db.Delete(&c, 1)
+	if delete.Error != nil {
+		return delete.Error
+	}
 	return nil
 }
 

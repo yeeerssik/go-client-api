@@ -16,6 +16,7 @@ import (
 	"github.com/go-playground/validator"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
+	// "github.com/swaggo/echo-swagger"
 )
 
 // Server diagnostics
@@ -76,6 +77,8 @@ func main() {
 	e.GET("/", func(ctx echo.Context) error {
 		return ctx.JSON(http.StatusOK, Heartbeat())
 	})
+
+	// e.GET("/docs", echoSwagger.WrapHandler)
 
 	e.Any("/api/client", handlers.ClientHandler{}.Any)
 	e.Any("/api/client/:client_id", handlers.ClientHandler{}.Any)
