@@ -31,6 +31,8 @@ func (handler ClientHandler) Any(c echo.Context) error {
 
 	case http.MethodPut:
 		return handler.Update(c)
+	case http.MethodDelete:
+		return handler.Delete(c)
 	}
 	return RawResponse(c, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 }
@@ -99,6 +101,49 @@ func (ClientHandler) Get(c echo.Context) error {
 	rq, _ := json.Marshal(req)
 	log.Info(c, "[client] Got Req: ", string(rq))
 	responseCode, err := fetchClient(c, req, &response)
+	if responseCode == 0 {
+		responseCode = http.StatusInternalServerError
+	}
+	if err != nil {
+		e := &contracts.ErrorData{
+			Code:        err.GetCode(),
+			Description: err.Error(),
+		}
+		response.ErrorData = e
+		log.Error(c, "[client] Got Error:", err)
+	}
+	response.HTTPCode = &responseCode
+	rs, _ := json.Marshal(response)
+	log.Info(c, "[client] Response: ", string(rs))
+	return RawResponse(c, response, responseCode)
+}
+
+func (ClientHandler) Delete(c echo.Context) error {
+	var response contracts.DeleteClientResponse
+	var responseCode int
+	requestID := c.Get("RequestID").(string)
+	method := c.Get("Method").(string)
+	response.Method = &method
+	response.RequestID = &requestID
+	c.Set("path", "client")
+	c.Set("method", strings.ToLower(method))
+	req := new(contracts.DeleteClientRequest)
+	clientID := c.Param("client_id")
+	fmt.Println("params", c.ParamNames(), c.ParamValues())
+	if clientID != "" {
+		req.ClientID = &clientID
+	}
+	if err := helpers.ExtractAndValidate(c, req); err != nil {
+		responseCode = http.StatusBadRequest
+		response.HTTPCode = &responseCode
+		response.ErrorData = err
+		e, _ := json.Marshal(err)
+		log.Error(c, "[client] ExtractAndValidate error", string(e))
+		return RawResponse(c, response, responseCode)
+	}
+	rq, _ := json.Marshal(req)
+	log.Info(c, "[client] Got Req: ", string(rq))
+	responseCode, err := deleteClient(c, req, &response)
 	if responseCode == 0 {
 		responseCode = http.StatusInternalServerError
 	}
@@ -207,6 +252,29 @@ func fetchClient(
 	return http.StatusOK, nil
 }
 
+func deleteClient(
+	c echo.Context,
+	req *contracts.DeleteClientRequest,
+	resp *contracts.DeleteClientResponse,
+) (
+	int,
+	ierror.IError,
+) {
+	err := models.DeleteClientById(*req.ClientID)
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return http.StatusInternalServerError, middlewares.ErrStatusInternalServerError("Database error", err)
+	} else if err != nil {
+		return http.StatusNotFound, middlewares.ErrStatusNotFound("record not found")
+	}
+	success := "true"
+	d := contracts.ManipulateClientData{
+		Success: &success,
+	}
+	resp.Data = &d
+	return http.StatusOK, nil
+
+}
+
 func updateClient(
 	c echo.Context,
 	req *contracts.UpdateClientRequest,
@@ -237,7 +305,7 @@ func updateClient(
 		return http.StatusInternalServerError, middlewares.ErrStatusInternalServerError("Database error", err)
 	}
 	success := "true"
-	d := contracts.UpdateClientData{
+	d := contracts.ManipulateClientData{
 		Success: &success,
 	}
 	resp.Data = &d

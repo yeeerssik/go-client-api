@@ -37,6 +37,16 @@ type GetClientData struct {
 	IIN       *string    `json:"iin"`
 }
 
+type DeleteClientRequest struct {
+	BaseRequest
+	ClientID *string `path:"client_id" validate:"required"`
+}
+
+type DeleteClientResponse struct {
+	BaseResponse
+	Data *ManipulateClientData `json:"data"`
+}
+
 type UpdateClientRequest struct {
 	BaseRequest
 	ClientID  *string    `json:"client_id" validate:"required"`
@@ -48,9 +58,9 @@ type UpdateClientRequest struct {
 
 type UpdateClientResponse struct {
 	BaseResponse
-	Data *UpdateClientData `json:"data"`
+	Data *ManipulateClientData `json:"data"`
 }
 
-type UpdateClientData struct {
+type ManipulateClientData struct {
 	Success *string `json:"success"`
 }
