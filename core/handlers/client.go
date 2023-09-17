@@ -252,6 +252,39 @@ func fetchClient(
 	return http.StatusOK, nil
 }
 
+func fetchAllClients(
+	c echo.Context,
+	req *contracts.GetAllClientRequest,
+	resp *contracts.GetAllClientResponse,
+) (
+	int,
+	ierror.IError,
+) {
+	clients, err := models.GetAllClients()
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return http.StatusInternalServerError, middlewares.ErrStatusInternalServerError("Database error", err)
+	} else if err != nil {
+		return http.StatusNotFound, middlewares.ErrStatusNotFound("record not found")
+	}
+
+	var clientsList []*contracts.GetClientData
+
+	for index, client := range clients {
+		id := hex.EncodeToString(*client.ClientID)
+		idInStr := uuid.Must(uuid.Parse(id)).String()
+		d := contracts.GetClientData{
+			ClientID:  &idInStr,
+			FirstName: client.FirstName,
+			LastName:  client.LastName,
+			BirthDate: client.BirthDate,
+			IIN:       client.IIN,
+		}
+		clientsList[index] = &d
+	}
+	resp.Data = clientsList
+	return http.StatusOK, nil
+}
+
 func deleteClient(
 	c echo.Context,
 	req *contracts.DeleteClientRequest,

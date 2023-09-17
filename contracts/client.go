@@ -37,6 +37,15 @@ type GetClientData struct {
 	IIN       *string    `json:"iin"`
 }
 
+type GetAllClientRequest struct {
+	BaseRequest
+}
+
+type GetAllClientResponse struct {
+	BaseResponse
+	Data []*GetClientData `json:"data"`
+}
+
 type DeleteClientRequest struct {
 	BaseRequest
 	ClientID *string `path:"client_id" validate:"required"`
